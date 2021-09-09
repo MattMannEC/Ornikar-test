@@ -77,9 +77,4 @@ class TemplateManager
 
         return $text;
     }
-
-    public function getInstructorLink()
-    {
-        return 'instructors/' . $this->lesson->instructor->id .'-'.urlencode($this->lesson->instructor->firstname);
-    }
 }
