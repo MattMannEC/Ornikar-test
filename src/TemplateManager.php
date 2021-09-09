@@ -13,29 +13,15 @@ use App\Repository\MeetingPointRepository;
 class TemplateManager
 {
     public Learner $user;
+    public array $contentVars;
+    public array $subjectVars;
 
     public function __construct(array $data)
     {
-        $this->user = $data['user'] instanceof Learner) ? $data['user'] : ApplicationContext::getInstance()->getCurrentUser();
+        $this->setUser();
         $this->lesson = $data['lesson'] instanceof Lesson) ? $data['lesson'] : null;
-    }
-
-    public function getTemplateComputed(Template $tpl, array $data)
-    {
-        if (!$tpl) {
-            throw new \RuntimeException('no tpl given');
-        }
-
-        $tpl->subject = $this->computeText($tpl->subject, $data);
-        $tpl->content = $this->computeText($tpl->content, $data);
-
-        return $tpl;
-    }
-
-    private function computeText($text, array $data)
-    {
-        $templateVars = [
-            'instructor_link' => $this->lesson->instructor->getLink(),
+        $this->contentVars = [
+            'instructor_link' => $this->lesson->instructor->getLink() ?? '',
             'lesson:summary_html' => Lesson::renderHtml($this->lesson),
             'lesson:summary' => Lesson::renderText($this->lesson),
             'lesson:instructor_name' => $this->lesson->instructor->firstname,
@@ -45,6 +31,36 @@ class TemplateManager
             'lesson:end_time' => $this->lesson->end_time->format('H:i'),
             'user:first_name' => strtolower($this->user->firstname),
         ];
+
+        $this->subjectVars = [
+            'lesson:instructor_name' => $this->lesson->instructor->firstname,
+        ];
+    }
+
+    public function setUser()
+    {
+        if ($data['user'] instanceof Learner) {
+            $user = $data['user'];
+        } else {
+            $user = ApplicationContext::getInstance()->getCurrentUser();
+        }
+        $this->user = $user;
+    }
+
+    public function getTemplateComputed(Template $tpl, array $data)
+    {
+        if (!$tpl) {
+            throw new \RuntimeException('no tpl given');
+        }
+
+        $tpl->subject = $this->setVariables($tpl->subject, $this->subjectVars);
+        $tpl->content = $this->setVariables($tpl->content, $this->contentVars); 
+
+        return $tpl;
+    }
+
+    private function setVariables($text, array $data)
+    {
 
         foreach ($templateVars as $wildcard => $value) {
             str_replace($wildcard, $value, $text);
