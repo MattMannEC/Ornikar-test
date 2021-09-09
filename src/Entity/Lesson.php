@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Repository\InstructorRepository;
+
 class Lesson
 {
     public int $id;
@@ -14,7 +16,7 @@ class Lesson
     {
         $this->id = $id;
         $this->meetingPointId = $meetingPointId;
-        $this->instructorId = $instructorId;
+        $this->instructor = InstructorRepository::getInstance()->getById($instructorId);
         $this->start_time = $start_time;
         $this->end_time = $end_time;
     }
@@ -28,4 +30,6 @@ class Lesson
     {
         return (string) $lesson->id;
     }
+
+    
 }
